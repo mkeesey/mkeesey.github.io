@@ -15,30 +15,30 @@
 			</div>
 		</div>
 		<footer class="text-center">
-			<button id="togglebutton" type="button" class="btn btn-default" onclick="toggle()">Enable Austrailian Mode</button>
+			<button id="togglebutton" type="button" class="btn btn-default" onclick="toggle()">Enable Australian Mode</button>
 		</footer>
 		<script>
 			var container = document.getElementById("textcontainer");
 			var toggleButton = document.getElementById("togglebutton");
 			var american = true
 
-			var americanText = "Enable Austrailian Mode";
-			var austrailianText = "Reset Mode";
+			var americanText = "Enable Australian Mode";
+			var australianText = "Reset Mode";
 			toggleButton.innerHTML = americanText;
 			function toggle() {
 				if (american) {
-					makeAustrailian();
+					makeAustralian();
 				} else {
 					makeAmerican();
 				}
 				american = !american;
 			}
-			function makeAustrailian() {
-				container.classList.add("austrailian");
-				toggleButton.innerHTML = austrailianText;
+			function makeAustralian() {
+				container.classList.add("australian");
+				toggleButton.innerHTML = australianText;
 			}
 			function makeAmerican() {
-				container.classList.remove("austrailian");
+				container.classList.remove("australian");
 				toggleButton.innerHTML = americanText;
 			}
 		</script>
