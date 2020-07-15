@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Mike Keesey</title>
-    <link>https://www.mkeesey.me/</link>
-    <description>Recent content on Mike Keesey</description>
+    <title>homelab on Mike Keesey</title>
+    <link>https://www.mkeesey.me/tags/homelab/</link>
+    <description>Recent content in homelab on Mike Keesey</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <lastBuildDate>Tue, 14 Jul 2020 18:41:36 -0600</lastBuildDate>
     
-	<atom:link href="https://www.mkeesey.me/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://www.mkeesey.me/tags/homelab/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>

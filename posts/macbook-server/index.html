@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"  lang="en-us">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+<title>Converting an old Macbook into a home Linux server | Mike Keesey</title>
+
+
+
+<link rel="stylesheet" href="/css/style.css"/><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+<link rel="canonical" href="https://www.mkeesey.me/posts/macbook-server/">
+<meta name="msapplication-TileColor" content="#da532c">
+<meta name="theme-color" content="#ffffff">
+</head>
+<body>
+<section class="section">
+  <div class="container">
+    <nav id="nav-main" class="nav">
+      <div id="nav-name" class="nav-left">
+        <a id="nav-anchor" class="nav-item" href="https://www.mkeesey.me/">
+          <h1 id="nav-heading" class="title is-4">Mike Keesey</h1>
+        </a>
+      </div>
+      <div class="nav-right">
+        <nav id="nav-items" class="nav-item level is-mobile"><a class="level-item" aria-label="github" href='https://github.com/mkeesey'
+            target='_blank' rel='noopener'>
+            <span class="icon">
+              <i class><svg viewbox='0 0 24 24' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' aria-hidden='true'>
+    
+    <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
+    
+  </svg></i>
+            </span>
+          </a><a class="level-item" aria-label="twitter" href='https://twitter.com/mwkeesey'
+            target='_blank' rel='noopener'>
+            <span class="icon">
+              <i class><svg viewbox='0 0 24 24' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' aria-hidden='true'>
+    
+    <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
+    
+  </svg></i>
+            </span>
+          </a></nav>
+      </div>
+    </nav>
+
+    <nav class="nav">
+      
+
+      
+    </nav>
+
+  </div>
+  <script src="/js/navicon-shift.js"></script>
+</section>
+<section class="section">
+  <div class="container">
+    <div class="subtitle tags is-6 is-pulled-right">
+      
+      
+<a class="subtitle is-6" href="/tags/homelab/">#homelab</a>
+
+
+
+
+      
+    </div>
+    <h2 class="subtitle is-6">July 14, 2020</h2>
+    <h1 class="title">Converting an old Macbook into a home Linux server</h1>
+    
+    <div class="content">
+      <p>I&rsquo;m a fan of home automation and have run <a href="https://www.home-assistant.io/">Home Assistant</a> for some time to streamline automating lights and AV controls. Until recently I ran it on a small Raspberry Pi 3, but as I&rsquo;ve continued to add more integrations and automations I found I needed more horsepower. This is especially true as I&rsquo;ve added additional services around HA like Prometheus and Grafana to better monitor the servers and sensors around the house.</p>
+<p>I prefer using hardware I already own rather than running out and buying a new NUC to do the job. Luckily, I have an old 2013 Macbook Pro which is a bit slow and heavy for a laptop these days but works perfectly for a small home server. After installing <a href="https://www.debian.org/">Debian</a> and <a href="https://wiki.debian.org/NetworkConfiguration#Configuring_the_interface_manually">configuring a static IP</a> I configured some Ansible playbooks to make the server manage itself. The examples I provide are from my Ansible code, but even if you don&rsquo;t use Ansible yourself it is easy to do these steps manually or to convert it to your favorite automation tool.</p>
+<h1 id="making-my-laptop-a-headless-server">Making my laptop a headless server</h1>
+<p>By default, the laptop screen will stay on and closing the lid will put the machine to sleep. I really want to keep this machine closed on a small shelf in my basement without wasting power keeping the display on. Thankfully, disabling these behaviors is straightforward by configuring <em>GRUB</em> and the <em>logind</em> unit file for systemd. We configure the display to turn off after 30 seconds of being idle so you can still use it if necessary, but otherwise it will automatically turn itself off. We also disable the default lid closure handler.</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">---
+- <span style="color:#66d9ef">hosts</span>: macbookserver
+  <span style="color:#66d9ef">become</span>: <span style="color:#66d9ef">true</span>
+
+  <span style="color:#66d9ef">handlers</span>:
+    - <span style="color:#66d9ef">name</span>: update-grub
+      <span style="color:#66d9ef">shell</span>: <span style="color:#e6db74">&#34;/sbin/update-grub&#34;</span>
+
+  <span style="color:#66d9ef">tasks</span>:
+    <span style="color:#75715e"># On the GRUB_CMDLINE_LINUX line, set the value consoleblank=30</span>
+    - <span style="color:#66d9ef">name</span>: Setup screen blanking
+      <span style="color:#66d9ef">lineinfile</span>:
+        <span style="color:#66d9ef">path</span>: /etc/default/grub
+        <span style="color:#66d9ef">regexp</span>: <span style="color:#e6db74">&#39;^GRUB_CMDLINE_LINUX=&#39;</span>
+        <span style="color:#66d9ef">line</span>: <span style="color:#e6db74">&#39;GRUB_CMDLINE_LINUX=&#34;consoleblank=30&#34;&#39;</span>
+      <span style="color:#66d9ef">notify</span>:
+        - update-grub <span style="color:#75715e"># If we modifed the cmdline, run the update-grub handler</span>
+
+    <span style="color:#75715e"># On the HandleLidSwitch line, replace it with a line that disables the handler</span>
+    - <span style="color:#66d9ef">name</span>: Disable laptop lid
+      <span style="color:#66d9ef">lineinfile</span>:
+        <span style="color:#66d9ef">path</span>: /etc/systemd/logind.conf
+        <span style="color:#66d9ef">regexp</span>: <span style="color:#e6db74">&#39;^HandleLidSwitch=&#39;</span>
+        <span style="color:#66d9ef">line</span>: <span style="color:#e6db74">&#39;HandleLidSwitch=ignore&#39;</span>
+</code></pre></td></tr></table>
+</div>
+</div><h1 id="automatic-updates">Automatic Updates</h1>
+<p><a href="https://wiki.debian.org/UnattendedUpgrades">unattended-upgrades</a> is one of my favorite features of Debian and Debian-derived distributions. Configuring and enabling unattended-upgrades makes it simple to keep my machines up to date with security patches without doing it myself. I use the excellent <a href="https://galaxy.ansible.com/jnv/unattended-upgrades">jnv.unattended-upgrades</a> Ansible role that allows me to install and configure unattended-upgrades with just a few variables. Since this is not a mission critical server for me, I&rsquo;m allowing the system to automatically reboot itself when necessary. (Kernel updates are the most typical reason.)</p>
+<p>I configured unattended-upgrades to look at the <em>Debian-Security</em> and <em>Debian</em> labels so we get security and stable updates.</p>
+<p>I also needed to manually configure unattended-upgrades to allow upgrading when on battery power. For whatever reason, my server often thinks it is on battery power even while it is plugged in. I do this by adding an additional configuration file to the <code>/etc/apt/apt.conf.d/</code> directory which I choose to call <code>51unattended-upgrades-acpower</code> to override the <code>Unattended-Upgrade::OnlyOnACPower</code> property.</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">- <span style="color:#66d9ef">name</span>: debian unattended upgrades
+  <span style="color:#66d9ef">hosts</span>: debian
+  <span style="color:#66d9ef">become</span>: <span style="color:#66d9ef">true</span>
+  <span style="color:#66d9ef">vars</span>:
+    <span style="color:#66d9ef">unattended_automatic_reboot</span>: <span style="color:#66d9ef">true</span>
+    <span style="color:#66d9ef">unattended_origins_patterns</span>:
+      - <span style="color:#e6db74">&#39;origin=Debian,codename=${distro_codename},label=Debian-Security&#39;</span> <span style="color:#75715e"># security updates</span>
+      - <span style="color:#e6db74">&#39;o=Debian,codename=${distro_codename},label=Debian&#39;</span> <span style="color:#75715e"># updates including non-security updates</span>
+
+  <span style="color:#66d9ef">roles</span>:
+    - jnv.unattended-upgrades
+
+  <span style="color:#66d9ef">tasks</span>:
+    - <span style="color:#66d9ef">name</span>: Allow updates when on AC Power
+      <span style="color:#66d9ef">blockinfile</span>:
+        <span style="color:#66d9ef">path</span>: <span style="color:#e6db74">&#39;/etc/apt/apt.conf.d/51unattended-upgrades-acpower&#39;</span>
+        <span style="color:#66d9ef">create</span>: yes
+        <span style="color:#66d9ef">owner</span>: root
+        <span style="color:#66d9ef">group</span>: root
+        <span style="color:#66d9ef">mode</span>: <span style="color:#ae81ff">0644</span>
+        <span style="color:#66d9ef">marker</span>: <span style="color:#e6db74">&#34;// {mark} ANSIBLE MANAGED BLOCK&#34;</span>
+        <span style="color:#66d9ef">block</span>: <span style="color:#e6db74">|
+</span><span style="color:#e6db74">          Unattended-Upgrade::OnlyOnACPower &#34;false&#34;;</span>
+</code></pre></td></tr></table>
+</div>
+</div>
+      
+    </div>
+    
+  </div>
+</section>
+
+
+
+<section class="section">
+  <div class="container has-text-centered">
+    <p></p>
+    
+  </div>
+</section>
+
+
+
+</body>
+</html>
+

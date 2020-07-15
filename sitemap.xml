@@ -3,15 +3,28 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   
   <url>
-    <loc>https://www.mkeesey.me/categories/</loc>
+    <loc>https://www.mkeesey.me/posts/macbook-server/</loc>
+    <lastmod>2020-07-14T18:41:36-06:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.mkeesey.me/tags/homelab/</loc>
+    <lastmod>2020-07-14T18:41:36-06:00</lastmod>
   </url>
   
   <url>
     <loc>https://www.mkeesey.me/</loc>
+    <lastmod>2020-07-14T18:41:36-06:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://www.mkeesey.me/posts/</loc>
+    <lastmod>2020-07-14T18:41:36-06:00</lastmod>
   </url>
   
   <url>
     <loc>https://www.mkeesey.me/tags/</loc>
+    <lastmod>2020-07-14T18:41:36-06:00</lastmod>
   </url>
   
 </urlset>
