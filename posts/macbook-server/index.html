@@ -146,7 +146,8 @@
 </div><h1 id="automatic-updates">Automatic Updates</h1>
 <p><a href="https://wiki.debian.org/UnattendedUpgrades">unattended-upgrades</a> is one of my favorite features of Debian and Debian-derived distributions. Configuring and enabling unattended-upgrades makes it simple to keep my machines up to date with security patches without doing it myself. I use the excellent <a href="https://galaxy.ansible.com/jnv/unattended-upgrades">jnv.unattended-upgrades</a> Ansible role that allows me to install and configure unattended-upgrades with just a few variables. Since this is not a mission critical server for me, I&rsquo;m allowing the system to automatically reboot itself when necessary. (Kernel updates are the most typical reason.)</p>
 <p>I configured unattended-upgrades to look at the <em>Debian-Security</em> and <em>Debian</em> labels so we get security and stable updates.</p>
-<p>I also needed to manually configure unattended-upgrades to allow upgrading when on battery power. For whatever reason, my server often thinks it is on battery power even while it is plugged in. I do this by adding an additional configuration file to the <code>/etc/apt/apt.conf.d/</code> directory which I choose to call <code>51unattended-upgrades-acpower</code> to override the <code>Unattended-Upgrade::OnlyOnACPower</code> property.</p>
+<p>I also needed to manually configure unattended-upgrades to allow upgrading when on battery power. For whatever reason, my server often thinks it is on battery power even while it is plugged in. I do this by overriding a few different sets of configurations.</p>
+<p>First, I added an additional configuration file to the <code>/etc/apt/apt.conf.d/</code> directory which I choose to call <code>51unattended-upgrades-acpower</code> to override the <code>Unattended-Upgrade::OnlyOnACPower</code> property.</p>
 <div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
@@ -197,6 +198,82 @@
         <span style="color:#66d9ef">marker</span>: <span style="color:#e6db74">&#34;// {mark} ANSIBLE MANAGED BLOCK&#34;</span>
         <span style="color:#66d9ef">block</span>: <span style="color:#e6db74">|
 </span><span style="color:#e6db74">          Unattended-Upgrade::OnlyOnACPower &#34;false&#34;;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>Second, I overrode the <code>ConditionACPower</code> property for the <code>apt-daily.service</code> and <code>apt-daily-upgrade.service</code> unit files. This allowed systemd to kick off these scheduled tasks despite thinking the laptop was on AC power. I created a systemd override file that looks like the following.</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-systemd" data-lang="systemd"><span style="color:#66d9ef">[Unit]</span>
+<span style="color:#a6e22e">ConditionACPower</span><span style="color:#f92672">=</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>I then deploy it with the following ansible code</p>
+<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-yaml" data-lang="yaml">  <span style="color:#66d9ef">tasks</span>:
+    - <span style="color:#66d9ef">name</span>: Create apt unit drop-in directories
+      <span style="color:#66d9ef">file</span>:
+        <span style="color:#66d9ef">path</span>: <span style="color:#e6db74">&#34;/etc/systemd/system/{{item}}&#34;</span>
+        <span style="color:#66d9ef">state</span>: directory
+        <span style="color:#66d9ef">owner</span>: root
+        <span style="color:#66d9ef">group</span>: root
+        <span style="color:#66d9ef">mode</span>: <span style="color:#e6db74">&#39;0755&#39;</span>
+      <span style="color:#66d9ef">with_items</span>:
+        - <span style="color:#e6db74">&#39;apt-daily.service.d&#39;</span>
+        - <span style="color:#e6db74">&#39;apt-daily-upgrade.service.d&#39;</span>
+      <span style="color:#66d9ef">notify</span>:
+        - reload systemd
+
+    - <span style="color:#66d9ef">name</span>: Override apt unit files
+      <span style="color:#66d9ef">copy</span>:
+        <span style="color:#66d9ef">src</span>: <span style="color:#e6db74">&#39;apt/systemd/acpoweroverride.conf&#39;</span>
+        <span style="color:#66d9ef">dest</span>: <span style="color:#e6db74">&#34;/etc/systemd/system/{{item}}.service.d/acpoweroverride.conf&#34;</span>
+        <span style="color:#66d9ef">mode</span>: <span style="color:#ae81ff">0644</span>
+      <span style="color:#66d9ef">with_items</span>:
+        - <span style="color:#e6db74">&#39;apt-daily&#39;</span>
+        - <span style="color:#e6db74">&#39;apt-daily-upgrade&#39;</span>
+      <span style="color:#66d9ef">notify</span>:
+        - reload systemd
+
+  <span style="color:#66d9ef">handlers</span>:
+    - <span style="color:#66d9ef">name</span>: reload systemd
+      <span style="color:#66d9ef">systemd</span>:
+        <span style="color:#66d9ef">daemon_reload</span>: yes
 </code></pre></td></tr></table>
 </div>
 </div><h1 id="wrapup">Wrapup</h1>
