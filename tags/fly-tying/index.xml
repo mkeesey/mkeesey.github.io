@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Posts on Mike Keesey</title>
-    <link>https://www.mkeesey.me/posts/</link>
-    <description>Recent content in Posts on Mike Keesey</description>
+    <title>fly tying on Mike Keesey</title>
+    <link>https://www.mkeesey.me/tags/fly-tying/</link>
+    <description>Recent content in fly tying on Mike Keesey</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
     <copyright>&amp;copy; Mike Keesey 2020</copyright>
     <lastBuildDate>Sun, 14 Nov 2021 20:00:00 -0600</lastBuildDate>
     
-	<atom:link href="https://www.mkeesey.me/posts/index.xml" rel="self" type="application/rss+xml" />
+	<atom:link href="https://www.mkeesey.me/tags/fly-tying/index.xml" rel="self" type="application/rss+xml" />
     
     
     <item>
@@ -22,15 +22,6 @@
 To allow it to sink effectively, I added a bead and some wraps of lead wire from these steps. I also created a tapered body like in these instructions.
 For most of the rest, I followed the simpler structure from the following video. The main highlights:
  Before moving the wraps all the way back to the bend I place a piece of copper wire for the back to secure it.</description>
-    </item>
-    
-    <item>
-      <title>Converting an old Macbook into a home Linux server</title>
-      <link>https://www.mkeesey.me/posts/macbook-server/</link>
-      <pubDate>Tue, 14 Jul 2020 18:41:36 -0600</pubDate>
-      
-      <guid>https://www.mkeesey.me/posts/macbook-server/</guid>
-      <description>I&amp;rsquo;m a fan of home automation and have run Home Assistant for some time to streamline automating lights and AV controls. Until recently I ran it on a small Raspberry Pi 3, but as I&amp;rsquo;ve continued to add more integrations and automations I found I needed more horsepower. This is especially true as I&amp;rsquo;ve added additional services around HA like Prometheus and Grafana to better monitor the servers and sensors around the house.</description>
     </item>
     
   </channel>
